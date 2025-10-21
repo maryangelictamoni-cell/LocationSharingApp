@@ -1,0 +1,71 @@
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>Location Tracker</title>
+       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   </head>
+   <body>
+       <h1>Location Tracker</h1>
+       <button id="generateLink">Generate Tracking Link</button>
+       <div id="dashboard" style="display:none;">
+           <h2>Dashboard</h2>
+           <table id="locationTable">
+               <tr>
+                   <th>Link</th>
+                   <th>Latitude</th>
+                   <th>Longitude</th>
+                   <th>Actions</th>
+               </tr>
+           </table>
+       </div>
+
+       <script>
+           $(document).ready(function() {
+               $('#generateLink').click(function() {
+                   // Generate a unique link (for demo purposes, using a random string)
+                   const link = 'https://example.com/track/' + Math.random().toString(36).substring(7);
+                   // Simulate tracking (in a real scenario, you'd send this link to users)
+                   navigator.geolocation.getCurrentPosition(function(position) {
+                       $.post('http://localhost:3000/track', {
+                           link: link,
+                           latitude: position.coords.latitude,
+                           longitude: position.coords.longitude
+                       });
+                   });
+                   alert('Tracking link generated: ' + link);
+               });
+
+               function loadLocations() {
+                   $.get('http://localhost:3000/locations', function(data) {
+                       data.forEach(location => {
+                           $('#locationTable').append(`
+                               <tr>
+                                   <td>${location.link}</td>
+                                   <td>${location.latitude}</td>
+                                   <td>${location.longitude}</td>
+                                   <td><button onclick="deleteLocation('${location._id}')">Delete</button></td>
+                               </tr>
+                           `);
+                       });
+                   });
+               }
+
+               loadLocations();
+
+               window.deleteLocation = function(id) {
+                   $.ajax({
+                       url: 'http://localhost:3000/locations/' + id,
+                       type: 'DELETE',
+                       success: function() {
+                           alert('Location deleted');
+                           location.reload();
+                       }
+                   });
+               };
+           });
+       </script>
+   </body>
+   </html>
+   
